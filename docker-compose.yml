@@ -1,0 +1,5 @@
+services:
+  deva_transcript_cpu:
+    build:
+      context: .
+      dockerfile: Dockerfile.cpu

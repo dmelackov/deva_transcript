@@ -15,6 +15,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-install-project
 COPY ./src ./pyproject.toml ./uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --extra ui
+    uv sync --frozen 
 
 CMD ["uv", "run", "-m", "deva_transcript"]

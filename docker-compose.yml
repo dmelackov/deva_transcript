@@ -3,3 +3,5 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.cpu
+    volumes:
+      - ./hugging_face_cache:/root/.cache/huggingface

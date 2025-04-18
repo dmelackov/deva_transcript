@@ -1,14 +1,9 @@
 
-from enum import Enum
 from typing import Annotated
 from faststream import Depends
 from minio import Minio
 
 from config import settings
-
-class S3Type(str, Enum):
-    undefined = "undefined"
-
 
 async def get_s3_client() -> Minio:
     return Minio(

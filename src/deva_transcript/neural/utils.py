@@ -9,3 +9,11 @@ async def extract_audio_and_convert(input_path: pathlib.Path, output_path: pathl
     )
     await ffmpeg.execute()
 
+def to_plain(input: list[dict]):
+    output = ""
+    for i in input:
+        text = i["text"].strip("\n").strip()
+        output += " " + text
+        if text[-1] in [".", "?", "!"]:
+            output += "\n"
+    return output

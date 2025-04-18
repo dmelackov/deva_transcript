@@ -45,7 +45,8 @@ async def task_transcribe(task_model: Task, session: Session, s3: S3_client, log
             s3.fget_object(settings.minio_bucket, str(task_model.origin_file_id), str(input_path))
 
             await extract_audio_and_convert(input_path, converted_path)
-            transcribe_audio(converted_path, output_path)
+            for i in transcribe_audio(converted_path, output_path):
+                await broker.publish(TaskToBack(task_id=task_model.id, done=False, status=str(i[0] / i[1])), RabbitQueuesToBack.done_task)
 
             new_file = await file_repository.create(
                 "transcript.json",

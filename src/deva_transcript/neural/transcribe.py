@@ -34,6 +34,7 @@ def transcribe_audio(input_path: pathlib.Path, output_path: pathlib.Path):
             "end": segment.end,
             "text": segment.text
         })
+        yield (segment.end, info.duration)
 
     with output_path.open("w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=4)

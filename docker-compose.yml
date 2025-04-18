@@ -5,11 +5,11 @@ services:
       dockerfile: Dockerfile.cpu
     volumes:
       - ./hugging_face_cache:/root/.cache/huggingface
-      
+
   deva_transcript_gpu:
     build:
       context: .
-      dockerfile: Dockerfile.gpu
+      dockerfile: Dockerfile.nvidia
     volumes:
       - ./hugging_face_cache:/root/.cache/huggingface
     deploy:

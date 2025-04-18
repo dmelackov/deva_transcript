@@ -86,7 +86,6 @@ async def handle(task: TaskToAi,
                  s3: S3_client,
                  logger: Logger):
     task_repository = TaskRepository(session)
-    file_repository = FileRepository(session)
     
     task_model = await task_repository.get_by_id(task.task_id)
     if task_model is None:

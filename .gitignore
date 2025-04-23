@@ -10,3 +10,7 @@ wheels/
 .venv
 .env
 dev.env
+unique/
+frames/
+test.py
+*.mp4

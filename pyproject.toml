@@ -12,7 +12,9 @@ dependencies = [
     "ffmpeg-python>=0.2.0",
     "minio>=7.2.15",
     "openai>=1.75.0",
+    "opencv-python>=4.11.0.86",
     "pydantic-settings>=2.8.1",
+    "scikit-image>=0.25.2",
 ]
 
 [tool.uv.sources]

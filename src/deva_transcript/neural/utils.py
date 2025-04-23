@@ -9,6 +9,15 @@ async def extract_audio_and_convert(input_path: pathlib.Path, output_path: pathl
     )
     await ffmpeg.execute()
 
+async def extract_key_frames(input_path: pathlib.Path, output_path: pathlib.Path, fps=1):
+
+    ffmpeg = (
+        FFmpeg()
+        .input(str(input_path), skip_frame="nokey")
+        .output(str(output_path / 'keyframe_%05d.jpg'), vsync='0', frame_pts='true', y=None)
+    )
+    await ffmpeg.execute()
+
 def to_plain(input: list[dict]):
     output = ""
     for i in input:

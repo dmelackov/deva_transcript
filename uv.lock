@@ -273,7 +273,7 @@ wheels = [
 [[package]]
 name = "deva-p1-db"
 version = "0.1.0"
-source = { git = "https://github.com/w1vern/deva_p1_db?branch=dev#34858d2e023b4d6bed21575386eb0615f4ea1064" }
+source = { git = "https://github.com/w1vern/deva_p1_db?branch=dev#57ae94ad8a76e5ebae4dc17f4325d2bab97c5f40" }
 dependencies = [
     { name = "asyncpg" },
     { name = "faststream" },

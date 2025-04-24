@@ -43,8 +43,10 @@ async def task_transcribe(task_model: Task, session: Session, s3: S3_client, log
     project_repository = ProjectRepository(session)
     with tempfile.TemporaryDirectory() as tmp_dir:
         temp_dir = pathlib.Path(tmp_dir)
-
         source_file = task_model.project.origin_file
+
+        if source_file is None:
+            raise Exception("Source file not found")
         input_type = resolve_file_type(source_file.file_type)
 
         input_path = temp_dir / f"input{input_type.extension}"
@@ -85,6 +87,10 @@ async def task_summary(task_model: Task, session: Session, s3: S3_client, logger
         input_path = pathlib.Path(tmp_dir) / "input.json"
         output_path = pathlib.Path(tmp_dir) / "output.md"
         transcript_file = task_model.project.transcription
+        if transcript_file is None:
+            raise Exception("Source file not found")
+        if task_model.project.origin_file is None:
+            raise Exception("Source file not found")
 
         s3.fget_object(settings.minio_bucket,
                        transcript_file.minio_name, str(input_path))
@@ -133,6 +139,8 @@ async def frames_extract_task(task_model: Task, session: Session, s3: S3_client,
         temp_dir = pathlib.Path(tmp_dir)
 
         source_file = task_model.project.origin_file
+        if source_file is None:
+            raise Exception("Source file not found")
         input_type = resolve_file_type(source_file.file_type)
 
         input_path = temp_dir / f"input{input_type.extension}"

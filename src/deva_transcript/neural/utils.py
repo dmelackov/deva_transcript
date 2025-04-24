@@ -60,7 +60,7 @@ def generate_prompt(transcript: list[TranscriptEntry], notes: list[Note], images
             continue
         if i.metadata_text is None:
             continue
-        image_name = f"{img_count:d4}.png"
+        image_name = f"{img_count:04}.png"
         prompt_list.append(
             {
                 'type': 'image',

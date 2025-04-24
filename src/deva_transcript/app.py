@@ -17,7 +17,7 @@ from deva_transcript.neural.summary import create_summary, load_openai_model
 from deva_transcript.neural.transcribe import load_whisper_model, transcribe_audio
 from deva_transcript.neural.utils import extract_audio_and_convert, extract_key_frames, generate_prompt
 from deva_transcript.s3 import S3_client
-from deva_p1_db.schemas.task import TaskToAi, TaskReadyToBack, TaskStatusToBack
+from deva_p1_db.schemas.task import TaskToAi, TaskReadyToBack, TaskStatusToBack, TaskErrorToBack
 from config import settings
 
 import tempfile
@@ -192,13 +192,16 @@ async def handle(task: TaskToAi,
         raise Exception("Task not found")
     logger.info(f"Task {task.task_id} started")
     start_time = time.time()
-
-    if settings.task_type == TaskType.transcribe:
-        await task_transcribe(task_model, session, s3, logger)
-    if settings.task_type == TaskType.summary:
-        await task_summary(task_model, session, s3, logger)
-    if settings.task_type == TaskType.frames_extract:
-        await frames_extract_task(task_model, session, s3, logger)
+    try:
+        if settings.task_type == TaskType.transcribe:
+            await task_transcribe(task_model, session, s3, logger)
+        if settings.task_type == TaskType.summary:
+            await task_summary(task_model, session, s3, logger)
+        if settings.task_type == TaskType.frames_extract:
+            await frames_extract_task(task_model, session, s3, logger)
+    except Exception as e:
+        logger.error(f"Task {task.task_id} failed: {e}")
+        await broker.publish(TaskErrorToBack(task_id=task.task_id, error=str(e)), RabbitQueuesToBack.error_task)
 
     task_model.done = True
     await session.flush()

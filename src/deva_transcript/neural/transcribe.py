@@ -13,7 +13,8 @@ def load_whisper_model():
     WHISPER_MODEL = WhisperModel(
         settings.whisper_model_name,
         device=settings.whisper_device,
-        compute_type="float16" if settings.whisper_device == "cuda" else "int8"
+        compute_type="float16" if settings.whisper_device == "cuda" else "int8",
+        cpu_threads=settings.whisper_cpu_threads
     )
 
 

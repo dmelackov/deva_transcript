@@ -69,7 +69,9 @@ async def task_transcribe(task_model: Task, session: Session, s3: S3_client, log
         if new_file is None:
             raise Exception("File not created")
         s3.fput_object(settings.minio_bucket,
-                       new_file.minio_name, str(output_path))
+                       new_file.minio_name,
+                       str(output_path),
+                       content_type=FileTypes.text_json.mime)
 
         await project_repository.add_transcription_file(task_model.project, new_file)
 
@@ -117,7 +119,9 @@ async def task_summary(task_model: Task, session: Session, s3: S3_client, logger
         if new_file is None:
             raise Exception("File not created")
         s3.fput_object(settings.minio_bucket,
-                       new_file.minio_name, str(output_path))
+                       new_file.minio_name,
+                       str(output_path),
+                       content_type=FileTypes.text_md.mime)
 
         await project_repository.add_summary_file(task_model.project, new_file)
 
@@ -168,7 +172,9 @@ async def frames_extract_task(task_model: Task, session: Session, s3: S3_client,
             if new_file is None:
                 raise Exception("File not created")
             s3.fput_object(settings.minio_bucket,
-                           new_file.minio_name, str(i[1]))
+                           new_file.minio_name,
+                           str(i[1]),
+                           content_type=FileTypes.image_png.mime)
 
         await project_repository.frames_extracted_done(task_model.project)
 

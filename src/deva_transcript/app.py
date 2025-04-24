@@ -136,6 +136,7 @@ async def frames_extract_task(task_model: Task, session: Session, s3: S3_client,
         output_dir = temp_dir / "images"
 
         converted_dir.mkdir(exist_ok=True)
+        output_dir.mkdir(exist_ok=True)
 
         s3.fget_object(settings.minio_bucket,
                        source_file.minio_name, str(input_path))

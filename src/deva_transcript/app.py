@@ -17,7 +17,7 @@ from deva_transcript.neural.summary import create_summary, load_openai_model
 from deva_transcript.neural.transcribe import load_whisper_model, transcribe_audio
 from deva_transcript.neural.utils import extract_audio_and_convert, extract_key_frames, generate_prompt
 from deva_transcript.s3 import S3_client
-from deva_p1_db.schemas.task import TaskToAi, TaskToBack
+from deva_p1_db.schemas.task import TaskToAi, TaskReadyToBack, TaskStatusToBack
 from config import settings
 
 import tempfile
@@ -56,13 +56,14 @@ async def task_transcribe(task_model: Task, session: Session, s3: S3_client, log
 
         await extract_audio_and_convert(input_path, converted_path)
         for i in transcribe_audio(converted_path, output_path):
-            await broker.publish(TaskToBack(task_id=task_model.id, done=False, status=str(i[0] / i[1])), RabbitQueuesToBack.progress_task)
+            await broker.publish(TaskStatusToBack(task_id=task_model.id, progress=i[0] / i[1]), RabbitQueuesToBack.progress_task)
 
         new_file = await file_repository.create(
-            "transcript.json",
-            FileTypes.text_json.internal,
             task_model.user,
             task_model.project,
+            "transcript.json",
+            FileTypes.text_json.internal,
+            file_size=0,
             task=task_model
         )
         if new_file is None:
@@ -106,10 +107,11 @@ async def task_summary(task_model: Task, session: Session, s3: S3_client, logger
             f.flush()
 
         new_file = await file_repository.create(
-            "summary.md",
-            FileTypes.text_md.internal,
             task_model.user,
             task_model.project,
+            "summary.md",
+            FileTypes.text_md.internal,
+            file_size=0,
             task=task_model
         )
         if new_file is None:
@@ -145,15 +147,16 @@ async def frames_extract_task(task_model: Task, session: Session, s3: S3_client,
         for i in extract_unique_slides(converted_dir, output_dir, *get_video_stat(input_path)):
             if time.time() - last_time > 3:
                 await broker.publish(
-                    TaskToBack(task_id=task_model.id, done=False, status=str(i[0] / i[1])), RabbitQueuesToBack.progress_task)
+                    TaskStatusToBack(task_id=task_model.id, progress=i[0] / i[1]), RabbitQueuesToBack.progress_task)
             images.append((i[0], i[2]))
 
         for i in images:
             new_file = await file_repository.create(
-                i[1].name,
-                FileTypes.image_png.internal,
                 task_model.user,
                 task_model.project,
+                i[1].name,
+                FileTypes.image_png.internal,
+                file_size=0,
                 task=task_model,
                 metadata_timecode=i[0],
                 metadata_is_hide=False,
@@ -193,9 +196,7 @@ async def handle(task: TaskToAi,
 
     logger.info(
         f"Task {task.task_id} end in {time.time() - start_time:.2f} seconds")
-    return TaskToBack(task_id=task.task_id,
-                      done=True,
-                      status=None)
+    return TaskReadyToBack(task_id=task.task_id)
 
 if settings.task_type == TaskType.summary:
     @broker.subscriber(RabbitQueuesToAi.summary_edit_task)
@@ -219,9 +220,7 @@ if settings.task_type == TaskType.summary:
 
         logger.info(
             f"Task {task.task_id} end in {time.time() - start_time:.2f} seconds")
-        return TaskToBack(task_id=task.task_id,
-                          done=True,
-                          status=None)
+        return TaskReadyToBack(task_id=task.task_id)
 
 
 @app.after_startup

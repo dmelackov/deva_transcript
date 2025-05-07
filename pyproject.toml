@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-deva-p1-db = { git = "https://github.com/w1vern/deva_p1_db", branch = "dev"}
+deva-p1-db = { git = "https://github.com/w1vern/deva_p1_db"}
 
 [tool.setuptools]
 package-dir = {"" = "src"}

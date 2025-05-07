@@ -31,6 +31,7 @@ class Settings(BaseSettings):
 
     whisper_model_name: str = "large-v3"
     whisper_device: str = "cpu"
+    whisper_cpu_threads: int = 0
 
     openai_api_key: str = ""
     openai_api_model_name: str = ""

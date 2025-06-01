@@ -12,7 +12,7 @@ from deva_p1_db.enums.file_type import FileTypes, resolve_file_type
 from openai import project
 
 from deva_transcript.database import Session
-from deva_transcript.neural.frames_extract import extract_unique_slides, get_video_stat
+import deva_transcript.neural.frames_extract as frames_extract
 from deva_transcript.neural.summary import create_summary, load_openai_model
 from deva_transcript.neural.transcribe import load_whisper_model, transcribe_audio
 from deva_transcript.neural.utils import extract_audio_and_convert, extract_key_frames, generate_prompt
@@ -145,24 +145,35 @@ async def frames_extract_task(task_model: Task, session: Session, s3: S3_client,
 
         input_path = temp_dir / f"input{input_type.extension}"
         converted_dir = temp_dir / "frames"
+        croped_dir = temp_dir / "crops"
         output_dir = temp_dir / "images"
 
         converted_dir.mkdir(exist_ok=True)
         output_dir.mkdir(exist_ok=True)
+        croped_dir.mkdir(exist_ok=True)
 
         s3.fget_object(settings.minio_bucket,
                        source_file.minio_name, str(input_path))
 
         await extract_key_frames(input_path, converted_dir)
 
-        last_time = time.time()
-
         images: list[tuple[float, pathlib.Path]] = []
 
-        for i in extract_unique_slides(converted_dir, output_dir, *get_video_stat(input_path)):
+        total_frames, fps = frames_extract.get_video_stat(input_path)
+        await frames_extract.extract_key_frames(input_path, converted_dir)
+        await broker.publish(
+            TaskStatusToBack(task_id=task_model.id, progress=1/3), RabbitQueuesToBack.progress_task)
+        last_time = time.time()
+        for i in frames_extract.crop_frames(converted_dir, croped_dir):
             if time.time() - last_time > 3:
                 await broker.publish(
-                    TaskStatusToBack(task_id=task_model.id, progress=i[0] / i[1]), RabbitQueuesToBack.progress_task)
+                    TaskStatusToBack(task_id=task_model.id, progress=1/3 + i[0]/i[1]*1/3), RabbitQueuesToBack.progress_task)
+                last_time = time.time()
+        for i in frames_extract.extract_unique_slides(input_dir=croped_dir, output_dir=output_dir, total_frames=total_frames, fps=fps):
+            if time.time() - last_time > 3:
+                await broker.publish(
+                    TaskStatusToBack(task_id=task_model.id, progress=2/3 + i[0]/i[1]*1/3), RabbitQueuesToBack.progress_task)
+                last_time = time.time()
             images.append((i[0], i[2]))
 
         for i in images:
@@ -249,3 +260,5 @@ async def load_model():
         load_whisper_model()
     if settings.task_type == TaskType.summary:
         load_openai_model()
+    if settings.task_type == TaskType.frames_extract:
+        frames_extract.load_models()

@@ -25,8 +25,8 @@ import tempfile
 broker = RabbitBroker(
     url=f"amqp://{settings.rabbit_user}:{settings.rabbit_password}@{settings.rabbit_ip}:{settings.rabbit_port}/",
     host=settings.rabbit_ip,
-    port=settings.rabbit_port
-
+    port=settings.rabbit_port,
+    max_consumers=1
 )
 app = FastStream(broker)
 

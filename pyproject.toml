@@ -19,11 +19,12 @@ dependencies = [
     "torch>=2.7.0",
     "torchvision>=0.22.0",
     "transformers>=4.52.4",
-    "ultralytics>=8.3.146",
+    "ultralytics",
 ]
 
 [tool.uv.sources]
 deva-p1-db = { git = "https://github.com/w1vern/deva_p1_db"}
+ultralytics = { git = "https://github.com/sunsmarterjie/yolov12.git" }
 
 [tool.setuptools]
 package-dir = {"" = "src"}

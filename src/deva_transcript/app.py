@@ -224,6 +224,7 @@ async def handle(task: TaskToAi,
 
     task_model.done = True
     await session.flush()
+    await session.commit()
 
     logger.info(
         f"Task {task.task_id} end in {time.time() - start_time:.2f} seconds")
